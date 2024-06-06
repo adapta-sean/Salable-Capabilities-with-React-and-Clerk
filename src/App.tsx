@@ -9,7 +9,7 @@ function App() {
     const {isSignedIn, user, isLoaded} = useUser();
     const {getToken} = useAuth();
 
-    const capabilities = user?.unsafeMetadata?.capabilities as string[] | undefined;
+    const capabilities = user?.publicMetadata?.capabilities as string[] | undefined;
 
     useEffect(() => {
         if (!isSignedIn || !user || !getToken) return;
