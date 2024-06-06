@@ -56,7 +56,7 @@ function App() {
                 </div>
             </header>
             <main className={'container mx-auto'}>
-                <h1 className='text-xl mb-4'>Capabilities using Clerk Metadata</h1>
+                <h1 className='text-2xl mb-4'>Capabilities using Clerk Metadata</h1>
                 {isLoaded ? (
                     <>
                         {
@@ -64,10 +64,12 @@ function App() {
                                 <div className='flex flex-col gap-4'>
                                     {capabilities ? (
                                         <div>
-                                            <h2 className='text-xl'>Capabilities</h2>
+                                            <h2 className='text-xl mb-4'>Capabilities</h2>
                                             <ul>
-                                                {Object.entries(capabilities).map(([capability, expiry]) =>
-                                                    <li key={capability}>{capability} expires in {formatDistanceToNow(new Date(expiry))}</li>
+                                                {Object.entries(capabilities)
+                                                    .sort(([a], [b]) => a.localeCompare(b))
+                                                    .map(([capability, expiry]) =>
+                                                    <li key={capability}><p className='leading-5 mb-2'><span className='font-bold'>{capability}</span><br/><span className='text-gray-400 italic text-sm'>expires in {formatDistanceToNow(new Date(expiry))}</span></p></li>
                                                 )}
                                             </ul>
                                         </div>
