@@ -29,7 +29,7 @@ function App() {
                     const newThing = await response.json();
                     setCapabilitiesFromJwt(newThing);
                 } else {
-                    setCapabilitiesFromJwt({data: "Not authorised to view this"}); // Todo: proper error handling need here
+                    setCapabilitiesFromJwt(null); // Todo: proper error handling need here
                 }
             } catch (e) {
                 setCapabilitiesFromJwt(null);
@@ -86,7 +86,7 @@ function App() {
                                             <div className="mockup-code">
                                                 <pre data-prefix='1'><code>{'{'}</code></pre>
                                                 {capabilitiesJson.map(([capability, expiry], i) => (
-                                                    <pre data-prefix={i + 2}><code>    "{capability}": "{expiry}"{i === capabilitiesJson.length ? ',' : ''}</code></pre>
+                                                    <pre data-prefix={i + 2}><code>    <span className='text-warning'>"{capability}"</span>: <span className='text-warning'>"{expiry}"{i === capabilitiesJson.length ? ',' : ''}</span></code></pre>
                                                 ))}
                                                 <pre data-prefix={capabilitiesJson.length + 2}><code>{'}'}</code></pre>
                                             </div>
