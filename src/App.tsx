@@ -1,5 +1,6 @@
 import {SignedIn, SignedOut, SignInButton, useAuth, UserButton, useUser} from "@clerk/clerk-react";
 import {useEffect, useState} from "react";
+import {formatDistanceToNow} from "date-fns/formatDistanceToNow";
 
 function App() {
     const [thing, setThing] = useState<{ data: string } | null>(null);
@@ -7,7 +8,6 @@ function App() {
     const {getToken} = useAuth();
 
     const capabilities = user?.unsafeMetadata?.capabilities as string[] | undefined;
-
 
     useEffect(() => {
         if (!isSignedIn || !user || !getToken) return;
@@ -26,6 +26,8 @@ function App() {
                 if (response.ok) {
                     const newThing = await response.json();
                     setThing(newThing);
+                } else {
+                    setThing({data: "Not authorised to view this"}); // Todo: proper error handling need here
                 }
             } catch (e) {
                 setThing(null);
@@ -56,29 +58,35 @@ function App() {
             <main className={'container mx-auto'}>
                 <h1 className='text-xl mb-4'>Capabilities using Clerk Metadata</h1>
                 {isLoaded ? (
-                    <div className='flex flex-col gap-4'>
-                        {capabilities ? (
-                            <div>
-                                <h2 className='text-xl'>Capabilities</h2>
-                                <ul>
-                                    {
-                                        capabilities.map(capability => <li key={capability}>{capability}</li>)
-                                    }
-                                </ul>
-                            </div>
-                        ) : null}
-                        {thing ? (
-                            <div>
-                                <h2 className='text-xl'>Protected API Request</h2>
-                                <p>{thing.data}</p>
-                            </div>
-                        ) : (
-                            <div className='flex align-items-center gap-4'>
-                                <span className="loading loading-spinner loading-md"/>
-                                <span>Fetching…</span>
-                            </div>
-                        )}
-                    </div>
+                    <>
+                        {
+                            isSignedIn ? (
+                                <div className='flex flex-col gap-4'>
+                                    {capabilities ? (
+                                        <div>
+                                            <h2 className='text-xl'>Capabilities</h2>
+                                            <ul>
+                                                {Object.entries(capabilities).map(([capability, expiry]) =>
+                                                    <li key={capability}>{capability} expires in {formatDistanceToNow(new Date(expiry))}</li>
+                                                )}
+                                            </ul>
+                                        </div>
+                                    ) : <p>No License</p>}
+                                    {isSignedIn && thing ? (
+                                        <div>
+                                            <h2 className='text-xl'>Protected API Request</h2>
+                                            <p>{thing.data}</p>
+                                        </div>
+                                    ) : (
+                                        <div className='flex align-items-center gap-4'>
+                                            <span className="loading loading-spinner loading-md"/>
+                                            <span>Fetching…</span>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : <p>Not Authenticated</p>
+                        }
+                    </>
                 ) : (
                     <div className='flex align-items-center gap-4'>
                         <span className="loading loading-spinner loading-md"/>
