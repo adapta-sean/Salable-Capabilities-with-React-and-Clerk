@@ -46,8 +46,8 @@ function App() {
                 <div className="flex-none">
                     <SignedOut>
                         <SignInButton
-                            forceRedirectUrl={'http://localhost:5173/post-sign-in'}
-                            signUpForceRedirectUrl={'http://localhost:5173/post-sign-up'}
+                            forceRedirectUrl={`${import.meta.env.VITE_HOST}/post-sign-in`}
+                            signUpForceRedirectUrl={`${import.meta.env.VITE_HOST}/post-sign-up`}
                         />
                     </SignedOut>
                     <SignedIn>
