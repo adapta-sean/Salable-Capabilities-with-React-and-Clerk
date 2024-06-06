@@ -2,8 +2,10 @@ import {SignedIn, SignedOut, SignInButton, useAuth, UserButton, useUser} from "@
 import {useEffect, useState} from "react";
 import {formatDistanceToNow} from "date-fns/formatDistanceToNow";
 
+type CapabilitiesFromJwt = { message: string, capabilities: Record<string, string> };
+
 function App() {
-    const [thing, setThing] = useState<{ data: string } | null>(null);
+    const [capabilitiesFromJwt, setCapabilitiesFromJwt] = useState<CapabilitiesFromJwt | null>(null);
     const {isSignedIn, user, isLoaded} = useUser();
     const {getToken} = useAuth();
 
@@ -20,22 +22,24 @@ function App() {
                     return;
                 }
                 const response = await fetch(
-                    `https://wprhk5jxsh.execute-api.eu-west-1.amazonaws.com/prod/thing`,
+                    `https://wprhk5jxsh.execute-api.eu-west-1.amazonaws.com/prod/capabilities-from-jwt`,
                     {headers: {Authorization: `Bearer ${token}`}}
                 );
                 if (response.ok) {
                     const newThing = await response.json();
-                    setThing(newThing);
+                    setCapabilitiesFromJwt(newThing);
                 } else {
-                    setThing({data: "Not authorised to view this"}); // Todo: proper error handling need here
+                    setCapabilitiesFromJwt({data: "Not authorised to view this"}); // Todo: proper error handling need here
                 }
             } catch (e) {
-                setThing(null);
+                setCapabilitiesFromJwt(null);
                 console.log('Failed at post sign in licence check', e);
             }
         };
         void getThing();
     }, [isSignedIn, user, getToken]);
+
+    const capabilitiesJson = capabilitiesFromJwt ? Object.entries(capabilitiesFromJwt.capabilities) : null;
 
     return (
         <div className='py-8'>
@@ -74,10 +78,18 @@ function App() {
                                             </ul>
                                         </div>
                                     ) : <p>No License</p>}
-                                    {isSignedIn && thing ? (
+                                    {isSignedIn && capabilitiesFromJwt && capabilitiesJson ? (
                                         <div>
-                                            <h2 className='text-xl'>Protected API Request</h2>
-                                            <p>{thing.data}</p>
+                                            <h2 className='text-xl mb-4'>Protected API Request</h2>
+                                            <p className='mb-4'>{capabilitiesFromJwt.message}</p>
+                                            <p className='text-gray-400 italic mb-2'>Capabilities Extracted from JWT in API request</p>
+                                            <div className="mockup-code">
+                                                <pre data-prefix='1'><code>{'{'}</code></pre>
+                                                {capabilitiesJson.map(([capability, expiry], i) => (
+                                                    <pre data-prefix={i + 2}><code>    "{capability}": "{expiry}"{i === capabilitiesJson.length ? ',' : ''}</code></pre>
+                                                ))}
+                                                <pre data-prefix={capabilitiesJson.length + 2}><code>{'}'}</code></pre>
+                                            </div>
                                         </div>
                                     ) : (
                                         <div className='flex align-items-center gap-4'>
