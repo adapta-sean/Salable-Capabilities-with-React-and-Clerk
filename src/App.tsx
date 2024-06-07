@@ -80,16 +80,18 @@ function App() {
                         <h2 className='text-xl mb-4 font-bold'>Frontend Capabilities</h2>
                         <p className='mb-4'>Capabilities available in the frontend from <code
                             className='text-gray-400'>user.publicMetadata.capabilities</code></p>
-                        <ul>
-                            {Object.entries(capabilities)
-                                .sort(([a], [b]) => a.localeCompare(b))
-                                .map(([capability, expiry]) =>
-                                    <li key={capability}><p className='leading-5 mb-2'><span
-                                        className='font-bold'>{capability}</span><br/><span
-                                        className='text-gray-400 italic text-sm'>expires in {formatDistanceToNow(new Date(expiry))}</span>
-                                    </p></li>
-                                )}
-                        </ul>
+                        <div className='md:columns-3 sm:columns-2'>
+                            <ul>
+                                {Object.entries(capabilities)
+                                    .sort(([a], [b]) => a.localeCompare(b))
+                                    .map(([capability, expiry]) =>
+                                        <li key={capability}><p className='leading-5 mb-2'><span
+                                            className='font-bold'>{capability}</span><br/><span
+                                            className='text-gray-400 italic text-sm'>expires in {formatDistanceToNow(new Date(expiry))}</span>
+                                        </p></li>
+                                    )}
+                            </ul>
+                        </div>
                     </div>
                 ) : <p>No License</p>}
                 {isSignedIn && protectedApiResponse && capabilitiesFromJwtList ? (
