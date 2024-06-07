@@ -73,48 +73,78 @@ function App() {
 
     return (
         <Layout>
-            <h1 className='text-2xl mb-4'>Capabilities using Clerk Public Metadata</h1>
-            {isSignedIn ? (
-                <div className='flex flex-col gap-4'>
-                    {capabilities ? (
-                        <div>
-                            <h2 className='mb-4'>Capabilities available in the frontend from <code className='text-gray-400 italic'>user.publicMetadata.capabilities</code></h2>
-                            <ul>
-                                {Object.entries(capabilities)
-                                    .sort(([a], [b]) => a.localeCompare(b))
-                                    .map(([capability, expiry]) =>
-                                        <li key={capability}><p className='leading-5 mb-2'><span
-                                            className='font-bold'>{capability}</span><br/><span
-                                            className='text-gray-400 italic text-sm'>expires in {formatDistanceToNow(new Date(expiry))}</span>
-                                        </p></li>
-                                    )}
-                            </ul>
+            <h1 className='text-2xl mb-4 font-bold'>Capabilities using Clerk Public Metadata</h1>
+            <div className='flex flex-col gap-4'>
+                {capabilities ? (
+                    <div>
+                        <h2 className='text-xl mb-4 font-bold'>Frontend Capabilities</h2>
+                        <p className='mb-4'>Capabilities available in the frontend from <code
+                            className='text-gray-400'>user.publicMetadata.capabilities</code></p>
+                        <ul>
+                            {Object.entries(capabilities)
+                                .sort(([a], [b]) => a.localeCompare(b))
+                                .map(([capability, expiry]) =>
+                                    <li key={capability}><p className='leading-5 mb-2'><span
+                                        className='font-bold'>{capability}</span><br/><span
+                                        className='text-gray-400 italic text-sm'>expires in {formatDistanceToNow(new Date(expiry))}</span>
+                                    </p></li>
+                                )}
+                        </ul>
+                    </div>
+                ) : <p>No License</p>}
+                {isSignedIn && protectedApiResponse && capabilitiesFromJwtList ? (
+                    <div>
+                        <h2 className='text-xl mb-4 font-bold'>Backend Capabilities</h2>
+                        <p className='mb-4'>{protectedApiResponse.message}</p>
+                        <p className='text-gray-400 italic mb-2'>Capabilities Extracted from JWT in
+                            a authenticated API request</p>
+                        <div className="mockup-code">
+                            <pre data-prefix='1'><code>{'{'}</code></pre>
+                            {capabilitiesFromJwtList.map(([capability, expiry], i) => (
+                                <pre data-prefix={i + 2}><code>    <span
+                                    className='text-warning'>"{capability}"</span>: <span
+                                    className='text-warning'>"{expiry}"{i === capabilitiesFromJwtList.length ? ',' : ''}</span></code></pre>
+                            ))}
+                            <pre data-prefix={capabilitiesFromJwtList.length + 2}><code>{'}'}</code></pre>
                         </div>
-                    ) : <p>No License</p>}
-                    {isSignedIn && protectedApiResponse && capabilitiesFromJwtList ? (
-                        <div>
-                            <h2 className='text-xl mb-4'>Protected API Request</h2>
-                            <p className='mb-4'>{protectedApiResponse.message}</p>
-                            <p className='text-gray-400 italic mb-2'>Capabilities Extracted from JWT in
-                                API request</p>
-                            <div className="mockup-code">
-                                <pre data-prefix='1'><code>{'{'}</code></pre>
-                                {capabilitiesFromJwtList.map(([capability, expiry], i) => (
-                                    <pre data-prefix={i + 2}><code>    <span
-                                        className='text-warning'>"{capability}"</span>: <span
-                                        className='text-warning'>"{expiry}"{i === capabilitiesFromJwtList.length ? ',' : ''}</span></code></pre>
-                                ))}
-                                <pre data-prefix={capabilitiesFromJwtList.length + 2}><code>{'}'}</code></pre>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className='flex align-items-center gap-4'>
-                            <span className="loading loading-spinner loading-md"/>
-                            <span>Fetching…</span>
-                        </div>
-                    )}
+                    </div>
+                ) : (
+                    <div className='flex align-items-center gap-4'>
+                        <span className="loading loading-spinner loading-md"/>
+                        <span>Fetching…</span>
+                    </div>
+                )}
+                <div className='max-w-prose'>
+                    <h2 className='text-xl mb-4 font-bold'>Notes</h2>
+                    <p className='mb-4'>Upon signing up, the user will be redirected to the <code
+                        className='text-gray-400'>/post-sign-up</code> React view. From here, a request is made to <code
+                        className='text-gray-400'>/post-sign-up</code> AWS Lambda, which generates a license for the
+                        new user, performs a license check, and stores the capabilities in the Clerk user's public
+                        metadata.
+                    </p>
+
+                    <p className='mb-4'>The public metadata is available in Clerk Sessions and Clerk JWT templates,
+                        providing
+                        access in the frontend application via <code className='text-gray-400'>useUser()</code> and
+                        authenticated requests via JWT claims.</p>
+
+                    <p className='mb-4'>On signing in, the user is redirected to <code
+                        className='text-gray-400'>/post-sign-in</code> and
+                        React view, which then sends a
+                        request to the <code className='text-gray-400'>/license-check</code> AWS Lambda. This Lambda
+                        function
+                        performs a license check and stores the
+                        capabilities in the Clerk user's public metadata.</p>
+
+                    <p className='mb-4'>The <code className='text-gray-400'>/license-check</code> AWS Lambda can be
+                        called
+                        whenever you want to refresh the license. It
+                        can be triggered on window focus, page navigation, or periodically revalidated, for example,
+                        once
+                        every
+                        hour. Utilizing a library like TanStack Query or SWR can be beneficial for this.</p>
                 </div>
-            ) : <p>Not Authenticated</p>}
+            </div>
         </Layout>
     );
 }
