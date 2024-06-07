@@ -1,23 +1,25 @@
-import {SignedIn, SignedOut, SignInButton, useAuth, UserButton, useUser} from "@clerk/clerk-react";
+import {SignUpButton, useAuth, useUser} from "@clerk/clerk-react";
 import {useEffect, useState} from "react";
 import {formatDistanceToNow} from "date-fns/formatDistanceToNow";
+import Layout from "./components/layout.tsx";
 
 type CapabilitiesFromJwt = { message: string, capabilities: Record<string, string> };
 
 function App() {
-    const [capabilitiesFromJwt, setCapabilitiesFromJwt] = useState<CapabilitiesFromJwt | null>(null);
     const {isSignedIn, user, isLoaded} = useUser();
     const {getToken} = useAuth();
+    const [protectedApiResponse, setProtectedApiResponse] = useState<CapabilitiesFromJwt | null>(null);
 
     const capabilities = user?.publicMetadata?.capabilities as string[] | undefined;
+    const capabilitiesFromJwtList = protectedApiResponse ? Object.entries(protectedApiResponse.capabilities) : null;
 
     useEffect(() => {
         if (!isSignedIn || !user || !getToken) return;
-        const getThing = async () => {
+        const getProtectedApiResponse = async () => {
             try {
                 const token = await getToken();
                 if (!token) {
-                    // Todo: figure out what to do here
+                    // Todo: error handling need here
                     console.log('Failed to get jwt token for request');
                     return;
                 }
@@ -25,91 +27,95 @@ function App() {
                     `https://wprhk5jxsh.execute-api.eu-west-1.amazonaws.com/prod/capabilities-from-jwt`,
                     {headers: {Authorization: `Bearer ${token}`}}
                 );
-                if (response.ok) {
-                    const newThing = await response.json();
-                    setCapabilitiesFromJwt(newThing);
-                } else {
-                    setCapabilitiesFromJwt(null); // Todo: proper error handling need here
+                if (!response.ok) {
+                    setProtectedApiResponse(null); // Todo: error handling need here
+                    return
                 }
+                const newProtectedApiResponse = await response.json();
+                setProtectedApiResponse(newProtectedApiResponse);
             } catch (e) {
-                setCapabilitiesFromJwt(null);
+                setProtectedApiResponse(null);
                 console.log('Failed at post sign in licence check', e);
             }
         };
-        void getThing();
+        void getProtectedApiResponse();
     }, [isSignedIn, user, getToken]);
 
-    const capabilitiesJson = capabilitiesFromJwt ? Object.entries(capabilitiesFromJwt.capabilities) : null;
+    if (!isLoaded) return (
+        <div className='container mx-auto my-8'>
+            <div role="alert" className="alert bg-base-300">
+                <span className="loading loading-spinner loading-md"/>
+                <span>Authorising…</span>
+            </div>
+        </div>
+    );
+
+    if (!isSignedIn) return (
+        <Layout>
+            <div className='container mx-auto my-8'>
+                <div className="card w-96 bg-base-300 shadow-xl">
+                    <div className="card-body">
+                        <h2 className="card-title">Free Trial</h2>
+                        <p className='mb-4'>Sign up to begin your free trial</p>
+                        <div className="card-actions">
+                            <SignUpButton
+                                forceRedirectUrl={`${import.meta.env.VITE_HOST}/post-sign-up`}
+                                signInForceRedirectUrl={`${import.meta.env.VITE_HOST}/post-sign-in`}
+                            >
+                                <button className="btn btn-neutral">Sign Up</button>
+                            </SignUpButton>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Layout>
+    );
 
     return (
-        <div className='py-8'>
-            <header className="container mx-auto mb-16 pr-8 navbar bg-base-300 rounded-2xl">
-                <div className="flex-1">
-                    <a className="btn btn-ghost text-xl">Salable Demo</a>
-                </div>
-                <div className="flex-none">
-                    <SignedOut>
-                        <SignInButton
-                            forceRedirectUrl={`${import.meta.env.VITE_HOST}/post-sign-in`}
-                            signUpForceRedirectUrl={`${import.meta.env.VITE_HOST}/post-sign-up`}
-                        />
-                    </SignedOut>
-                    <SignedIn>
-                        <UserButton/>
-                    </SignedIn>
-                </div>
-            </header>
-            <main className={'container mx-auto'}>
-                <h1 className='text-2xl mb-4'>Capabilities using Clerk Metadata</h1>
-                {isLoaded ? (
-                    <>
-                        {
-                            isSignedIn ? (
-                                <div className='flex flex-col gap-4'>
-                                    {capabilities ? (
-                                        <div>
-                                            <h2 className='text-xl mb-4'>Capabilities</h2>
-                                            <ul>
-                                                {Object.entries(capabilities)
-                                                    .sort(([a], [b]) => a.localeCompare(b))
-                                                    .map(([capability, expiry]) =>
-                                                    <li key={capability}><p className='leading-5 mb-2'><span className='font-bold'>{capability}</span><br/><span className='text-gray-400 italic text-sm'>expires in {formatDistanceToNow(new Date(expiry))}</span></p></li>
-                                                )}
-                                            </ul>
-                                        </div>
-                                    ) : <p>No License</p>}
-                                    {isSignedIn && capabilitiesFromJwt && capabilitiesJson ? (
-                                        <div>
-                                            <h2 className='text-xl mb-4'>Protected API Request</h2>
-                                            <p className='mb-4'>{capabilitiesFromJwt.message}</p>
-                                            <p className='text-gray-400 italic mb-2'>Capabilities Extracted from JWT in API request</p>
-                                            <div className="mockup-code">
-                                                <pre data-prefix='1'><code>{'{'}</code></pre>
-                                                {capabilitiesJson.map(([capability, expiry], i) => (
-                                                    <pre data-prefix={i + 2}><code>    <span className='text-warning'>"{capability}"</span>: <span className='text-warning'>"{expiry}"{i === capabilitiesJson.length ? ',' : ''}</span></code></pre>
-                                                ))}
-                                                <pre data-prefix={capabilitiesJson.length + 2}><code>{'}'}</code></pre>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className='flex align-items-center gap-4'>
-                                            <span className="loading loading-spinner loading-md"/>
-                                            <span>Fetching…</span>
-                                        </div>
+        <Layout>
+            <h1 className='text-2xl mb-4'>Capabilities using Clerk Public Metadata</h1>
+            {isSignedIn ? (
+                <div className='flex flex-col gap-4'>
+                    {capabilities ? (
+                        <div>
+                            <h2 className='mb-4'>Capabilities available in the frontend from <code className='text-gray-400 italic'>user.publicMetadata.capabilities</code></h2>
+                            <ul>
+                                {Object.entries(capabilities)
+                                    .sort(([a], [b]) => a.localeCompare(b))
+                                    .map(([capability, expiry]) =>
+                                        <li key={capability}><p className='leading-5 mb-2'><span
+                                            className='font-bold'>{capability}</span><br/><span
+                                            className='text-gray-400 italic text-sm'>expires in {formatDistanceToNow(new Date(expiry))}</span>
+                                        </p></li>
                                     )}
-                                </div>
-                            ) : <p>Not Authenticated</p>
-                        }
-                    </>
-                ) : (
-                    <div className='flex align-items-center gap-4'>
-                        <span className="loading loading-spinner loading-md"/>
-                        <span>Authorising…</span>
-                    </div>
-                )}
-            </main>
-        </div>
-
+                            </ul>
+                        </div>
+                    ) : <p>No License</p>}
+                    {isSignedIn && protectedApiResponse && capabilitiesFromJwtList ? (
+                        <div>
+                            <h2 className='text-xl mb-4'>Protected API Request</h2>
+                            <p className='mb-4'>{protectedApiResponse.message}</p>
+                            <p className='text-gray-400 italic mb-2'>Capabilities Extracted from JWT in
+                                API request</p>
+                            <div className="mockup-code">
+                                <pre data-prefix='1'><code>{'{'}</code></pre>
+                                {capabilitiesFromJwtList.map(([capability, expiry], i) => (
+                                    <pre data-prefix={i + 2}><code>    <span
+                                        className='text-warning'>"{capability}"</span>: <span
+                                        className='text-warning'>"{expiry}"{i === capabilitiesFromJwtList.length ? ',' : ''}</span></code></pre>
+                                ))}
+                                <pre data-prefix={capabilitiesFromJwtList.length + 2}><code>{'}'}</code></pre>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className='flex align-items-center gap-4'>
+                            <span className="loading loading-spinner loading-md"/>
+                            <span>Fetching…</span>
+                        </div>
+                    )}
+                </div>
+            ) : <p>Not Authenticated</p>}
+        </Layout>
     );
 }
 

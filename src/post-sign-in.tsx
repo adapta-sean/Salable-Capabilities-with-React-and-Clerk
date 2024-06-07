@@ -13,7 +13,7 @@ export default function PostSignIn() {
             try {
                 const token = await getToken();
                 if(!token) {
-                    // Todo: figure out what to do here
+                    // Todo: error handling needed here
                     console.log('Failed to get jwt token for request');
                     return;
                 }
@@ -22,24 +22,24 @@ export default function PostSignIn() {
                     {headers: {Authorization: `Bearer ${token}`}}
                 );
                 if(!response.ok) {
-                    // Todo: figure out what to do here
+                    // Todo: error handling needed here
                     console.log('Failed to check license');
+                    return;
                 }
                 await user.reload();
             } catch (e) {
                 console.log('Failed at post sign in licence check', e);
+            } finally {
+                setAuthorising(false);
             }
-            setAuthorising(false);
         };
         void licenseCheck();
     }, [isSignedIn, user, getToken]);
 
-    if (!authorising) {
-        return <Navigate to="/" replace={true}/>;
-    }
+    if (!authorising) return <Navigate to="/" replace={true}/>;
 
     return (
-        <div className={'container mx-auto my-8'}>
+        <div className='container mx-auto my-8'>
             <div role="alert" className="alert bg-base-300">
                 <span className="loading loading-spinner loading-md"/>
                 <span>Authorising…</span>
