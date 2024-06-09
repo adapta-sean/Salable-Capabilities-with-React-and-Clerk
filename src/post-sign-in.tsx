@@ -18,7 +18,7 @@ export default function PostSignIn() {
                     return;
                 }
                 const response = await fetch(
-                    `https://wprhk5jxsh.execute-api.eu-west-1.amazonaws.com/prod/license-check`,
+                    `${import.meta.env.VITE_API_URL}/license-check`,
                     {headers: {Authorization: `Bearer ${token}`}}
                 );
                 if(!response.ok) {
@@ -36,7 +36,7 @@ export default function PostSignIn() {
         void licenseCheck();
     }, [isSignedIn, user, getToken]);
 
-    if (!authorising) return <Navigate to="/" replace={true}/>;
+    if (!authorising) return <Navigate to="/dashboard" replace={true}/>;
 
     return (
         <div className='container mx-auto my-8'>

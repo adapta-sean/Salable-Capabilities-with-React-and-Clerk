@@ -1,11 +1,12 @@
-import Header from "./header.tsx";
+import {Outlet} from "react-router-dom";
+import Header from "../components/header.tsx";
 
-export default function Layout({children}: { children: React.ReactNode }) {
+export default function DashboardRoute() {
     return (
         <div className='p-8'>
             <Header/>
             <main className={'container mx-auto'}>
-                {children}
+                <Outlet/>
             </main>
         </div>
     )

@@ -18,7 +18,7 @@ export default function PostSignUp() {
                     return;
                 }
                 const response = await fetch(
-                    `https://wprhk5jxsh.execute-api.eu-west-1.amazonaws.com/prod/post-sign-up`,
+                    `${import.meta.env.VITE_API_URL}/post-sign-up`,
                     {headers: {Authorization: `Bearer ${token}`}}
                 );
                 if(!response.ok) {
@@ -36,7 +36,7 @@ export default function PostSignUp() {
         void postSignUp();
     }, [isSignedIn, user, getToken]);
 
-    if (!authorising) return <Navigate to="/" replace={true}/>;
+    if (!authorising) return <Navigate to="/dashboard" replace={true}/>;
 
     return (
         <div className='container mx-auto my-8'>

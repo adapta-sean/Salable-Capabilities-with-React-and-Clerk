@@ -1,13 +1,19 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import App from './App.tsx'
+import Dashboard from './dashboard.tsx'
 import './index.css'
 import {ClerkProvider} from "@clerk/clerk-react";
 import {createBrowserRouter, RouterProvider} from "react-router-dom";
 import PostSignUp from "./post-sign-up.tsx";
 import PostSignIn from "./post-sign-in.tsx";
+import SalableProvider from "./salable/salable-context.tsx";
+import ProView from "./pro-view.tsx";
+import ProDashboardRoute from "./routes/pro-dashboard-route.tsx";
+import AuthenticatedRoute from "./routes/authenticated-route.tsx";
+import DashboardRoute from "./routes/dashboard-route.tsx";
+import PriceList from "./price-list.tsx";
 
-const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 if (!PUBLISHABLE_KEY) {
     throw new Error("Missing Publishable Key")
@@ -15,23 +21,55 @@ if (!PUBLISHABLE_KEY) {
 
 const router = createBrowserRouter([
     {
+        element: <DashboardRoute/>,
         path: "/",
-        element: <App/>,
+        children: [
+            {
+                element: <PriceList/>,
+                path: '/',
+            },
+            {
+                path: "/dashboard",
+                element: <AuthenticatedRoute/>,
+                children: [
+                    {
+                        path: "/dashboard",
+                        element: <Dashboard/>,
+                    },
+                    {
+                        element: <ProDashboardRoute capability={'xxxx'}/>,
+                        path: "/dashboard",
+                        children: [
+                            {path: "/dashboard/protected-view", element: <ProView/>},
+                        ]
+                    },
+                ]
+            }
+        ]
     },
     {
-        path: "/post-sign-up",
-        element: <PostSignUp/>,
-    },
-    {
-        path: "/post-sign-in",
-        element: <PostSignIn/>,
+        element: <AuthenticatedRoute/>,
+        path: "auth",
+        children: [
+            {
+                path: "/auth/post-sign-up",
+                element: <PostSignUp/>,
+            },
+            {
+                path: "/auth/post-sign-in",
+                element: <PostSignIn/>,
+            },
+        ]
     },
 ]);
+
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
         <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
-            <RouterProvider router={router}/>
+            <SalableProvider>
+                <RouterProvider router={router}/>
+            </SalableProvider>
         </ClerkProvider>
     </React.StrictMode>,
 );
