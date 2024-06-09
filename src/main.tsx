@@ -8,10 +8,12 @@ import PostSignUp from "./post-sign-up.tsx";
 import PostSignIn from "./post-sign-in.tsx";
 import SalableProvider from "./salable/salable-context.tsx";
 import ProView from "./pro-view.tsx";
-import ProDashboardRoute from "./routes/pro-dashboard-route.tsx";
+import ProRoute from "./routes/pro-route.tsx";
 import AuthenticatedRoute from "./routes/authenticated-route.tsx";
 import DashboardRoute from "./routes/dashboard-route.tsx";
 import PriceList from "./price-list.tsx";
+import BespokeRoute from "./routes/bespoke-route.tsx";
+import BespokeView from "./bespoke-view.tsx";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -37,10 +39,17 @@ const router = createBrowserRouter([
                         element: <Dashboard/>,
                     },
                     {
-                        element: <ProDashboardRoute capability={'xxxx'}/>,
+                        element: <ProRoute capability={'pro'}/>,
                         path: "/dashboard",
                         children: [
-                            {path: "/dashboard/protected-view", element: <ProView/>},
+                            {path: "/dashboard/pro-view", element: <ProView/>},
+                        ]
+                    },
+                    {
+                        element: <BespokeRoute capability={'bespoke'}/>,
+                        path: "/dashboard",
+                        children: [
+                            {path: "/dashboard/bespoke-view", element: <BespokeView/>},
                         ]
                     },
                 ]

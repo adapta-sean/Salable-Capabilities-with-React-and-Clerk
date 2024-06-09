@@ -8,7 +8,10 @@ function Dashboard() {
     return (
         <>
             <h1 className='text-2xl mb-4 font-bold'>Capabilities using Clerk Public Metadata</h1>
-            <Link to='/dashboard/protected-view' className='btn btn-neutral'>View Protected Dashboard</Link>
+            <div className='flex gap-4'>
+                <Link to='/dashboard/pro-view' className='btn btn-neutral'>Pro View</Link>
+                <Link to='/dashboard/bespoke-view' className='btn btn-neutral'>Bespoke View</Link>
+            </div>
             <div className='flex flex-col gap-4 mt-4'>
                 <FrontCapabilitiesPanel/>
                 <ProtectedResponsePanel capability='eap'/>
