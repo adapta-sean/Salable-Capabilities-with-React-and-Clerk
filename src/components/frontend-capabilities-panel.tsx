@@ -18,14 +18,19 @@ export default function FrontCapabilitiesPanel() {
                     {Object.entries(capabilities)
                         .sort(([a], [b]) => a.localeCompare(b))
                         .map(([capability, expiry]) =>
-                            <li key={capability}><p className='leading-5 mb-2'><span
-                                className='font-bold'>{capability}</span><br/><span
-                                className='text-gray-400 italic text-sm'>expires in {formatDistanceToNow(new Date(expiry))}</span>
-                            </p></li>
+                            <li key={capability}>
+                                <p className='leading-5 mb-2'>
+                                    <span className='font-bold'>{capability}</span><br/>
+                                    <span className='text-gray-400 italic text-sm'>
+                                        {new Date(expiry) > new Date()
+                                            ? `expires in ${formatDistanceToNow(new Date(expiry))}`
+                                            : `expired ${formatDistanceToNow(new Date(expiry))} ago`}
+                                    </span>
+                                </p>
+                            </li>
                         )}
                 </ul>
             </div>
         </div>
-
     )
 }
